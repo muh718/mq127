@@ -1,1 +1,329 @@
+```html
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لعبة التحويلات الهندسية - النسخة المظلمة</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@700&family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --card-dark: #1e293b;
+            --accent-blue: #38bdf8;
+        }
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: var(--bg-dark);
+            color: #f8fafc;
+            user-select: none;
+            overflow-x: hidden;
+        }
+        .math-ltr {
+            direction: ltr;
+            display: inline-block;
+            font-family: 'Consolas', 'Monaco', monospace;
+            unicode-bidi: isolate;
+        }
+        .thuluth {
+            font-family: 'Amiri', serif;
+            font-size: 2.2rem;
+            color: #e2e8f0;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+        }
+        .neon-border {
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+        }
+        .option-btn {
+            background-color: #334155;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        .option-btn:hover:not(:disabled) {
+            background-color: #475569;
+            transform: translateY(-2px);
+            border-color: var(--accent-blue);
+        }
+        .correct {
+            background-color: #059669 !important;
+            border-color: #10b981 !important;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+        }
+        .wrong {
+            background-color: #dc2626 !important;
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+        }
+        .glass {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <!-- Start Screen -->
+    <div id="start-screen" class="w-full max-w-md p-8 rounded-3xl glass neon-border text-center">
+        <div class="mb-8">
+            <div class="w-24 h-24 bg-sky-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z" />
+                </svg>
+            </div>
+            <h1 class="text-3xl font-bold text-white mb-2">تحدي التحويلات</h1>
+            <p class="text-sky-300">الرياضيات - أول ثانوي</p>
+        </div>
+
+        <div class="space-y-6">
+            <div class="text-right">
+                <label class="block text-sm font-medium text-slate-400 mb-2 mr-1">الاسم الثلاثي للمتسابق:</label>
+                <input type="text" id="user-name" class="w-full bg-slate-800/50 border border-slate-600 rounded-xl px-4 py-4 text-center text-white focus:ring-2 focus:ring-sky-500 outline-none transition-all placeholder-slate-500" placeholder="اكتب اسمك هنا...">
+            </div>
+            <button onclick="startGame()" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-sky-900/40 text-lg">
+                بدء اللعبة
+            </button>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="game-screen" class="hidden w-full max-w-3xl glass p-6 md:p-10 rounded-3xl neon-border">
+        <div class="flex flex-wrap justify-between items-center mb-8 gap-4 border-b border-slate-700 pb-6">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-sky-500 flex items-center justify-center font-bold text-slate-900">
+                    <span id="q-num-icon">1</span>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-400">المتسابق</p>
+                    <p id="player-display" class="font-bold text-white text-sm"></p>
+                </div>
+            </div>
+            <div class="flex flex-col items-center">
+                <div class="text-xs text-slate-400 mb-1">التقدم</div>
+                <div class="w-32 h-2 bg-slate-700 rounded-full overflow-hidden">
+                    <div id="progress-bar" class="h-full bg-sky-500 w-0 transition-all duration-300"></div>
+                </div>
+            </div>
+            <div class="text-left bg-slate-800/80 px-4 py-2 rounded-2xl border border-slate-700">
+                <span class="text-xs text-slate-400 block">النقاط</span>
+                <span id="score-display" class="text-xl font-bold text-emerald-400">0</span>
+            </div>
+        </div>
+
+        <div id="question-box" class="min-h-[120px] mb-10 text-center">
+            <h2 id="question-text" class="text-xl md:text-2xl font-bold leading-relaxed"></h2>
+        </div>
+
+        <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+            <!-- Options will be injected here -->
+        </div>
+    </div>
+
+    <!-- End Screen -->
+    <div id="end-screen" class="hidden w-full max-w-2xl glass p-10 rounded-3xl neon-border text-center">
+        <div class="mb-10">
+            <div class="text-7xl mb-6">🎯</div>
+            <h2 class="text-3xl font-bold mb-2">تم إكمال المهمة!</h2>
+            <p id="result-name" class="text-sky-400 text-xl font-bold mb-8"></p>
+            
+            <div class="grid grid-cols-2 gap-4 max-w-sm mx-auto mb-10">
+                <div class="bg-slate-800/80 p-4 rounded-2xl border border-slate-700">
+                    <p class="text-slate-400 text-sm mb-1">الأسئلة الصحيحة</p>
+                    <p class="text-3xl font-black text-emerald-400"><span id="final-score">0</span> / 30</p>
+                </div>
+                <div class="bg-slate-800/80 p-4 rounded-2xl border border-slate-700">
+                    <p class="text-slate-400 text-sm mb-1">النسبة المئوية</p>
+                    <p id="final-percent" class="text-3xl font-black text-sky-400">0%</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="thuluth text-slate-200 py-10 border-t border-slate-700/50 leading-loose">
+            تمنياتي لكم بالتوفيق ….. أ/محمد القرني
+        </div>
+
+        <button onclick="location.reload()" class="bg-slate-100 hover:bg-white text-slate-900 px-10 py-3 rounded-xl font-bold transition-all shadow-xl shadow-white/10">
+            بدء من جديد
+        </button>
+    </div>
+
+    <script>
+        // Data Factory
+        function createQuestionBank() {
+            let pool = [];
+
+            // Sign on left formatter: Ensure sign stays with the number correctly in LTR context
+            const n = (val) => val < 0 ? `-${Math.abs(val)}` : val.toString();
+            const coord = (x, y) => `<span class="math-ltr">(${n(x)}, ${n(y)})</span>`;
+
+            // 1. Reflection
+            for(let i=0; i<30; i++) {
+                let x = Math.floor(Math.random() * 20) - 10;
+                let y = Math.floor(Math.random() * 20) - 10;
+                pool.push({
+                    text: `ما صورة النقطة ${coord(x, y)} بالانعكاس حول محور <span class="math-ltr">x</span>؟`,
+                    options: [coord(x, -y), coord(-x, y), coord(-x, -y), coord(y, x)],
+                    correct: coord(x, -y)
+                });
+                pool.push({
+                    text: `ما صورة النقطة ${coord(x, y)} بالانعكاس حول محور <span class="math-ltr">y</span>؟`,
+                    options: [coord(-x, y), coord(x, -y), coord(-x, -y), coord(y, x)],
+                    correct: coord(-x, y)
+                });
+                pool.push({
+                    text: `ما صورة النقطة ${coord(x, y)} بالانعكاس حول المستقيم <span class="math-ltr">y = x</span>؟`,
+                    options: [coord(y, x), coord(-y, -x), coord(x, y), coord(-x, -y)],
+                    correct: coord(y, x)
+                });
+            }
+
+            // 2. Translation
+            for(let i=0; i<30; i++) {
+                let x = Math.floor(Math.random() * 10) - 5;
+                let y = Math.floor(Math.random() * 10) - 5;
+                let dx = Math.floor(Math.random() * 8) - 4;
+                let dy = Math.floor(Math.random() * 8) - 4;
+                pool.push({
+                    text: `صورة النقطة ${coord(x, y)} تحت الإزاحة <span class="math-ltr">(x ${dx>=0?'+':''}${n(dx)}, y ${dy>=0?'+':''}${n(dy)})</span> هي:`,
+                    options: [coord(x+dx, y+dy), coord(x-dx, y-dy), coord(x+dx, y), coord(x, y+dy)],
+                    correct: coord(x+dx, y+dy)
+                });
+            }
+
+            // 3. Rotation
+            for(let i=0; i<30; i++) {
+                let x = Math.floor(Math.random() * 9) + 1;
+                let y = Math.floor(Math.random() * 9) + 1;
+                pool.push({
+                    text: `دوران النقطة ${coord(x, y)} بزاوية <span class="math-ltr">90°</span> عكس عقارب الساعة حول الأصل هو:`,
+                    options: [coord(-y, x), coord(y, -x), coord(-x, -y), coord(y, x)],
+                    correct: coord(-y, x)
+                });
+                pool.push({
+                    text: `دوران النقطة ${coord(x, y)} بزاوية <span class="math-ltr">180°</span> حول نقطة الأصل هو:`,
+                    options: [coord(-x, -y), coord(-y, x), coord(y, -x), coord(x, -y)],
+                    correct: coord(-x, -y)
+                });
+                pool.push({
+                    text: `دوران النقطة ${coord(x, y)} بزاوية <span class="math-ltr">270°</span> عكس عقارب الساعة حول الأصل هو:`,
+                    options: [coord(y, -x), coord(-y, x), coord(-x, -y), coord(x, y)],
+                    correct: coord(y, -x)
+                });
+            }
+
+            // 4. Dilation
+            for(let i=0; i<30; i++) {
+                let x = Math.floor(Math.random() * 6) + 1;
+                let y = Math.floor(Math.random() * 6) + 1;
+                let k = [2, 3, 0.5][Math.floor(Math.random() * 3)];
+                pool.push({
+                    text: `ما صورة النقطة ${coord(x, y)} بتمدد معامل مقداره <span class="math-ltr">k = ${n(k)}</span> ومركزه الأصل؟`,
+                    options: [coord(x*k, y*k), coord(x/k, y/k), coord(x+k, y+k), coord(y, x)],
+                    correct: coord(x*k, y*k)
+                });
+            }
+
+            // 5. Symmetry & Composition
+            const theoretical = [
+                {q: "تركيب انعكاسين حول مستقيمين متوازيين يكافئ:", a: "إزاحة", o: ["إزاحة", "دوران", "انعكاس", "تمدد"]},
+                {q: "تركيب انعكاسين حول مستقيمين متقاطعين يكافئ:", a: "دوران", o: ["دوران", "إزاحة", "انعكاس", "تمدد"]},
+                {q: "عدد محاور تماثل الشكل السداسي المنتظم يساوي:", a: "6", o: ["6", "12", "3", "0"]},
+                {q: "مقدار التماثل الدوراني للمربع يساوي:", a: "90°", o: ["90°", "180°", "45°", "360°"]},
+                {q: "رتبة التماثل الدوراني للشكل الثماني المنتظم هي:", a: "8", o: ["8", "4", "2", "16"]}
+            ];
+            theoretical.forEach(item => {
+                pool.push({ text: item.q, options: item.o, correct: item.a });
+            });
+
+            return pool;
+        }
+
+        const fullPool = createQuestionBank();
+        let selectedQuestions = [];
+        let currentIndex = 0;
+        let score = 0;
+        let name = "";
+
+        function startGame() {
+            const inputName = document.getElementById('user-name').value.trim();
+            if (inputName.split(" ").length < 3) {
+                alert("يرجى كتابة الاسم الثلاثي للمتابعة");
+                return;
+            }
+            name = inputName;
+            
+            // Selection logic: Shuffle pool and take 30
+            selectedQuestions = fullPool
+                .sort(() => Math.random() - 0.5)
+                .slice(0, 30);
+            
+            currentIndex = 0;
+            score = 0;
+
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            document.getElementById('player-display').innerText = name;
+            
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const q = selectedQuestions[currentIndex];
+            document.getElementById('question-text').innerHTML = q.text;
+            document.getElementById('q-num-icon').innerText = currentIndex + 1;
+            document.getElementById('score-display').innerText = score;
+            document.getElementById('progress-bar').style.width = `${(currentIndex / 30) * 100}%`;
+
+            const container = document.getElementById('options-container');
+            container.innerHTML = "";
+
+            // Shuffle choices
+            const choices = [...q.options].sort(() => Math.random() - 0.5);
+
+            choices.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = "option-btn text-white p-5 rounded-2xl font-bold text-lg focus:outline-none";
+                btn.innerHTML = opt;
+                btn.onclick = () => checkAnswer(btn, opt, q.correct);
+                container.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(btn, chosen, correct) {
+            const btns = document.querySelectorAll('.option-btn');
+            btns.forEach(b => b.disabled = true);
+
+            if (chosen === correct) {
+                btn.classList.add('correct');
+                score++;
+            } else {
+                btn.classList.add('wrong');
+                // We don't show the correct answer as requested
+            }
+
+            setTimeout(() => {
+                currentIndex++;
+                if (currentIndex < 30) {
+                    renderQuestion();
+                } else {
+                    showEnd();
+                }
+            }, 1000);
+        }
+
+        function showEnd() {
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('end-screen').classList.remove('hidden');
+            
+            document.getElementById('result-name').innerText = name;
+            document.getElementById('final-score').innerText = score;
+            document.getElementById('final-percent').innerText = Math.round((score/30)*100) + "%";
+        }
+    </script>
+</body>
+</html>
+
+```
 
